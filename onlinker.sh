@@ -137,6 +137,95 @@ copy_moon() {
     fi
 }
 
+# 配置 zerotier-cli 别名
+configure_alias() {
+    log "配置 zerotier-cli 别名..."
+    
+    # 检查是否已存在别名
+    if alias zc 2>/dev/null | grep -q "zerotier-cli"; then
+        ok "别名 'zc' 已配置"
+        return 0
+    fi
+    
+    # 检查 zerotier-cli 是否可用
+    if ! command -v zerotier-cli >/dev/null 2>&1; then
+        warn "zerotier-cli 命令不可用，跳过别名配置"
+        return 1
+    fi
+    
+    # 为当前用户配置别名
+    local user_shell=""
+    local alias_file=""
+    
+    # 检测用户shell类型
+    if [ -n "${SUDO_USER:-}" ]; then
+        # 如果通过sudo运行，为原用户配置
+        local user="$SUDO_USER"
+        user_shell=$(getent passwd "$user" | cut -d: -f7)
+        case "$user_shell" in
+            */bash)
+                alias_file="/home/$user/.bashrc"
+                ;;
+            */zsh)
+                alias_file="/home/$user/.zshrc"
+                ;;
+            */fish)
+                alias_file="/home/$user/.config/fish/config.fish"
+                ;;
+            *)
+                warn "不支持的shell类型: $user_shell，跳过别名配置"
+                return 1
+                ;;
+        esac
+    else
+        # 直接root运行，为root配置
+        user_shell="$SHELL"
+        case "$user_shell" in
+            */bash)
+                alias_file="/root/.bashrc"
+                ;;
+            */zsh)
+                alias_file="/root/.zshrc"
+                ;;
+            */fish)
+                alias_file="/root/.config/fish/config.fish"
+                ;;
+            *)
+                warn "不支持的shell类型: $user_shell，跳过别名配置"
+                return 1
+                ;;
+        esac
+    fi
+    
+    # 检查别名文件是否存在
+    if [ ! -f "$alias_file" ]; then
+        warn "别名文件不存在: $alias_file，跳过别名配置"
+        return 1
+    fi
+    
+    # 检查是否已存在别名配置
+    if grep -q "alias zc=" "$alias_file"; then
+        ok "别名 'zc' 已在 $alias_file 中配置"
+        return 0
+    fi
+    
+    # 添加别名配置
+    echo "" >> "$alias_file"
+    echo "# ZeroTier CLI 别名配置 (由 onlinker 自动添加)" >> "$alias_file"
+    echo "alias zc='zerotier-cli'" >> "$alias_file"
+    
+    # 设置文件权限
+    if [ -n "${SUDO_USER:-}" ]; then
+        chown "$SUDO_USER:$SUDO_USER" "$alias_file" 2>/dev/null || true
+    fi
+    
+    ok "别名 'zc' 已添加到 $alias_file"
+    log "请重新加载shell配置或重新登录以使用别名"
+    log "或者执行: source $alias_file"
+    
+    return 0
+}
+
 # 验证安装结果
 verify_installation() {
     log "验证安装结果和系统状态..."
@@ -179,6 +268,9 @@ verify_installation() {
     else
         warn "Moon 配置文件状态：未就绪"
     fi
+    
+    # 自动配置别名
+    configure_alias
 }
 
 # 完全清理 ZeroTier
@@ -581,6 +673,7 @@ onlinker.sh - ZeroTier 自动化部署管理工具
   --download on|off  开启/关闭文件下载服务（planet + moon）
   --clear [组件]   完全清理指定组件（zerotier/ztncui，不指定则清理所有）
   --status         显示系统状态报告
+  --alias          配置 zerotier-cli 别名 (zc)
   --help           显示此帮助信息
 
 注意:
@@ -623,6 +716,10 @@ onlinker.sh - ZeroTier 自动化部署管理工具
 
   # 状态检查
   $0 --status                      # 显示系统状态报告
+  
+  # 别名配置
+  $0 --alias                       # 配置 zerotier-cli 别名 (zc)
+  # 配置完成后可以使用: zc listnetworks, zc join <network_id> 等
 
 注意:
   - 需要 root 权限运行
@@ -630,6 +727,8 @@ onlinker.sh - ZeroTier 自动化部署管理工具
   - 确保离线包完整（离线模式）
   - 清理功能会完全移除组件，包括配置和数据
   - 建议在生产环境使用前先在测试环境验证
+  - 别名配置后需要重新加载shell配置或重新登录
+  - 支持 bash、zsh、fish 等主流shell
 EOF_HELP
 }
 
@@ -658,6 +757,10 @@ main() {
                 ;;
             --status)
                 show_system_status
+                exit 0
+                ;;
+            --alias)
+                configure_alias
                 exit 0
                 ;;
             --online)
