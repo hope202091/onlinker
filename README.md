@@ -22,7 +22,7 @@
 
 onlinker 是一个**超级酷炫**的 ZeroTier 网络工具自动化部署工具集 🎉，提供在线和离线两种安装方式。通过简单的命令行界面，您可以快速部署、管理和配置 ZeroTier 网络服务和 ztncui 管理界面。
 
-✨ **新功能亮点**: 现在支持 Planet 文件自动下载服务、智能 Moon 节点部署、一键清理管理、智能部署检测，让网络部署变得超级简单！
+✨ **新功能亮点**: 现在支持 Planet 文件自动下载服务、智能 Moon 节点部署、一键清理管理、智能部署检测、zerotier-cli 别名配置，让网络部署变得超级简单！
 
 ## 🌟 核心特性
 
@@ -87,6 +87,14 @@ onlinker 是一个**超级酷炫**的 ZeroTier 网络工具自动化部署工具
 - **配置验证**: 验证配置文件的完整性和有效性
 - **智能跳过**: 避免重复安装和配置，提高效率
 - **强制重装**: 支持 `--reinstall` 参数强制重新部署
+
+### ⌨️ 智能别名配置
+
+- **自动配置**: 安装完成后自动配置 `zc` 别名
+- **手动配置**: 支持 `--alias` 参数随时配置别名
+- **多shell支持**: 支持 bash、zsh、fish 等主流shell
+- **用户识别**: 智能识别sudo用户，为原用户配置别名
+- **命令简化**: 使用 `zc` 替代 `zerotier-cli`，大大减少命令长度
 
 ## 📋 系统要求
 
@@ -163,6 +171,18 @@ sudo ./onlinker.sh --clear zerotier
 
 # 仅清理 ztncui
 sudo ./onlinker.sh --clear ztncui
+```
+
+### 5. ⌨️ 别名配置管理
+
+```bash
+# 配置 zerotier-cli 别名 (zc)
+sudo ./onlinker.sh --alias
+
+# 配置完成后可以使用快捷命令
+zc listnetworks    # 替代 zerotier-cli listnetworks
+zc join <network>  # 替代 zerotier-cli join <network>
+zc info            # 替代 zerotier-cli info
 ```
 
 #### 📦 5. 直接调用安装脚本
@@ -808,7 +828,8 @@ ls -la /opt/key-networks/ztncui/
 - **主要语言**: bash
 - **支持架构**: amd64 + arm64
 - **支持版本**: Ubuntu 16.04-24.04 LTS
-- **核心功能**: 智能部署 + Moon 节点 + 一键清理 + 文件下载服务
+- **核心功能**: 智能部署 + Moon 节点 + 一键清理 + 文件下载服务 + 别名配置
+- **当前版本**: v1.5.0
 
 详细的版本更新记录请查看 [changelog.md](changelog.md) 文件。
 
