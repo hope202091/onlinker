@@ -6,7 +6,6 @@
 # 支持：Ubuntu 16.04 LTS 到 24.04 LTS（仅 amd64）
 # 来源：https://s3-us-west-1.amazonaws.com/key-networks/deb/ztncui/1/x86_64/ztncui_0.8.14_amd64.deb
 # 作者：onlinker 项目
-# 版本：1.2.0
 # =============================================================================
 
 # ---- 日志统一 ----
